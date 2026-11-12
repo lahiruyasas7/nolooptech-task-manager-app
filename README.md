@@ -56,6 +56,19 @@ Because the API URL is embedded in the browser app at build time, also set
 `NEXT_PUBLIC_API_URL` to `http://localhost:<API_PORT>` and rebuild. Set
 `CORS_ORIGIN` to `http://localhost:<WEB_PORT>` if the web port changes.
 
+For example, to use ports `3002` and `3003`, create a `.env` file in the
+repository root with:
+
+```dotenv
+WEB_PORT=3002
+API_PORT=3003
+NEXT_PUBLIC_API_URL=http://localhost:3003
+CORS_ORIGIN=http://localhost:3002
+```
+
+These are Docker Compose settings. The defaults are used if the root `.env`
+file is absent.
+
 ## Run locally without Docker
 
 ### Prerequisites
@@ -82,6 +95,14 @@ On macOS/Linux:
 cp .env.example .env
 ```
 
+The API environment values are:
+
+```dotenv
+DATABASE_URL="file:./prisma/dev.db"
+PORT=3001
+CORS_ORIGIN="http://localhost:3000"
+```
+
 Generate Prisma Client, apply migrations, and start the API:
 
 ```bash
@@ -106,6 +127,12 @@ in PowerShell, or `cp .env.example .env.local` on macOS/Linux), then run:
 
 ```bash
 npm run dev
+```
+
+The web environment value is:
+
+```dotenv
+NEXT_PUBLIC_API_URL="http://localhost:3001"
 ```
 
 Open <http://localhost:3000>. Set `NEXT_PUBLIC_API_URL` in
