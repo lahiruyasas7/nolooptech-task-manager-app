@@ -56,6 +56,10 @@ validate status values at the API boundary.
 To create and apply a new migration during development, run
 `npx prisma migrate dev --name <migration-name>`.
 
+Set `CORS_ORIGIN` to the exact origin of the web app (for example,
+`http://localhost:3000`). If it is unset, the API allows the local Next.js
+development origin only.
+
 ## Compile and run the project
 
 ```bash
