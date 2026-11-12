@@ -1,11 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { CreateTaskDto } from './dto/create-task.dto.js';
 import { ListTasksQueryDto } from './dto/list-tasks-query.dto.js';
 
 @Injectable()
 export class TasksService {
   constructor(private readonly prisma: PrismaService) {}
+
+  create(createTaskDto: CreateTaskDto) {
+    const { dueDate, ...taskData } = createTaskDto;
+
+    return this.prisma.task.create({
+      data: {
+        ...taskData,
+        ...(dueDate ? { dueDate: new Date(dueDate) } : {}),
+      },
+    });
+  }
 
   async findAll({ status, sort }: ListTasksQueryDto) {
     const where: Prisma.TaskWhereInput = status ? { status } : {};
