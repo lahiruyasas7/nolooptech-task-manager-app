@@ -29,6 +29,15 @@ describe('TasksController (e2e)', () => {
     title: 'Earlier due date',
     dueDate: '2026-11-10T10:00:00.000Z',
   };
+  const taskCreate = vi.fn().mockResolvedValue({
+    id: '2b982cec-1f12-4be2-9644-1eeddb2e91ac',
+    title: 'New task',
+    description: 'Created from the API',
+    status: TaskStatus.IN_PROGRESS,
+    dueDate: '2026-12-01T10:00:00.000Z',
+    createdAt: '2026-11-12T10:00:00.000Z',
+    updatedAt: '2026-11-12T10:00:00.000Z',
+  });
   const findMany = vi.fn().mockImplementation(async (args) => {
     if (args.where.dueDate?.not === null) {
       return args.orderBy[0].dueDate === 'asc'
@@ -49,12 +58,13 @@ describe('TasksController (e2e)', () => {
 
   beforeEach(async () => {
     findMany.mockClear();
+    taskCreate.mockClear();
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
       .overrideProvider(PrismaService)
-      .useValue({ task: { findMany } })
+      .useValue({ task: { create: taskCreate, findMany } })
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -66,6 +76,41 @@ describe('TasksController (e2e)', () => {
       }),
     );
     await app.init();
+  });
+
+  it('creates a task and converts its due date to a Date for Prisma', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/tasks')
+      .send({
+        title: 'New task',
+        description: 'Created from the API',
+        status: TaskStatus.IN_PROGRESS,
+        dueDate: '2026-12-01T10:00:00.000Z',
+      })
+      .expect(201);
+
+    expect(response.body).toMatchObject({
+      title: 'New task',
+      status: TaskStatus.IN_PROGRESS,
+      dueDate: '2026-12-01T10:00:00.000Z',
+    });
+    expect(taskCreate).toHaveBeenCalledWith({
+      data: {
+        title: 'New task',
+        description: 'Created from the API',
+        status: TaskStatus.IN_PROGRESS,
+        dueDate: new Date('2026-12-01T10:00:00.000Z'),
+      },
+    });
+  });
+
+  it('rejects invalid task input without creating a task', async () => {
+    await request(app.getHttpServer())
+      .post('/tasks')
+      .send({ title: '', unexpected: true })
+      .expect(400);
+
+    expect(taskCreate).not.toHaveBeenCalled();
   });
 
   it('lists tasks in creation order by default', async () => {
