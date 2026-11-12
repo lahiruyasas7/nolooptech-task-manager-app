@@ -1,0 +1,56 @@
+services:
+  migrate:
+    build:
+      context: ./api
+      target: migrate
+    environment:
+      DATABASE_URL: file:/app/data/tasks.db
+    volumes:
+      - task-data:/app/data
+    restart: "no"
+
+  api:
+    build:
+      context: ./api
+      target: runtime
+    environment:
+      DATABASE_URL: file:/app/data/tasks.db
+      PORT: 3001
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+    ports:
+      - "${API_PORT:-3001}:3001"
+    volumes:
+      - task-data:/app/data
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3001/tasks').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  task-data:
