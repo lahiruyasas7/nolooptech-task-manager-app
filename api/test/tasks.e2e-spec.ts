@@ -2,6 +2,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
+import { Prisma } from '../src/generated/prisma/client.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
 import { AppModule } from '../src/app.module.js';
 import { TaskStatus } from '../src/tasks/task-status.enum.js';
@@ -39,6 +40,7 @@ describe('TasksController (e2e)', () => {
     updatedAt: '2026-11-12T10:00:00.000Z',
   });
   const taskFindUnique = vi.fn();
+  const taskUpdate = vi.fn();
   const findMany = vi.fn().mockImplementation(async (args) => {
     if (args.where.dueDate?.not === null) {
       return args.orderBy[0].dueDate === 'asc'
@@ -62,13 +64,20 @@ describe('TasksController (e2e)', () => {
     taskCreate.mockClear();
     taskFindUnique.mockReset();
     taskFindUnique.mockResolvedValue(taskWithDueDate);
+    taskUpdate.mockReset();
+    taskUpdate.mockResolvedValue(taskWithDueDate);
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
       .overrideProvider(PrismaService)
       .useValue({
-        task: { create: taskCreate, findMany, findUnique: taskFindUnique },
+        task: {
+          create: taskCreate,
+          findMany,
+          findUnique: taskFindUnique,
+          update: taskUpdate,
+        },
       })
       .compile();
 
@@ -141,6 +150,53 @@ describe('TasksController (e2e)', () => {
     await request(app.getHttpServer()).get('/tasks/not-a-uuid').expect(400);
 
     expect(taskFindUnique).not.toHaveBeenCalled();
+  });
+
+  it('updates provided fields and converts the due date to a Date for Prisma', async () => {
+    await request(app.getHttpServer())
+      .patch(`/tasks/${taskWithDueDate.id}`)
+      .send({
+        title: 'Updated title',
+        status: TaskStatus.DONE,
+        dueDate: '2026-12-01T10:00:00.000Z',
+      })
+      .expect(200);
+
+    expect(taskUpdate).toHaveBeenCalledWith({
+      where: { id: taskWithDueDate.id },
+      data: {
+        title: 'Updated title',
+        status: TaskStatus.DONE,
+        dueDate: new Date('2026-12-01T10:00:00.000Z'),
+      },
+    });
+  });
+
+  it('returns 404 when the task being updated does not exist', async () => {
+    taskUpdate.mockRejectedValueOnce(
+      new Prisma.PrismaClientKnownRequestError('Record not found.', {
+        code: 'P2025',
+        clientVersion: '7.10.1',
+      }),
+    );
+
+    await request(app.getHttpServer())
+      .patch('/tasks/8ae09f6e-e554-4651-9552-39192e5a9451')
+      .send({ title: 'Updated title' })
+      .expect(404);
+  });
+
+  it('returns 400 for an invalid task ID or invalid update data', async () => {
+    await request(app.getHttpServer())
+      .patch('/tasks/not-a-uuid')
+      .send({ title: 'Updated title' })
+      .expect(400);
+    await request(app.getHttpServer())
+      .patch(`/tasks/${taskWithDueDate.id}`)
+      .send({ status: 'INVALID' })
+      .expect(400);
+
+    expect(taskUpdate).not.toHaveBeenCalled();
   });
 
   it('lists tasks in creation order by default', async () => {
