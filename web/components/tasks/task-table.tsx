@@ -1,5 +1,6 @@
 import { AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -189,9 +190,11 @@ export function TaskListError({
 export function TaskListEmpty({
   status,
   onClearFilter,
+  onCreateTask,
 }: {
   status: TaskStatus | undefined;
   onClearFilter: () => void;
+  onCreateTask: () => void;
 }) {
   return (
     <div className="flex flex-col items-center rounded-xl border border-dashed border-slate-300 bg-white px-5 py-14 text-center">
@@ -201,7 +204,7 @@ export function TaskListEmpty({
       <p className="max-w-sm text-sm text-slate-600">
         {status
           ? "There are no tasks with this status. Choose another filter to see more."
-          : "Tasks will appear here once they have been added."}
+          : "Create a task to start organizing your work."}
       </p>
       {status && (
         <button
@@ -211,6 +214,11 @@ export function TaskListEmpty({
         >
           Clear filter
         </button>
+      )}
+      {!status && (
+        <Button type="button" className="mt-4" onClick={onCreateTask}>
+          Create task
+        </Button>
       )}
     </div>
   );

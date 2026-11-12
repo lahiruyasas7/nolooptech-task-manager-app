@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check } from "lucide-react";
+import { Check, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
 import { TaskFilters } from "@/components/tasks/task-filters";
 import {
   TaskListEmpty,
@@ -15,6 +17,7 @@ import type { TaskSort, TaskStatus } from "@/schemas/task";
 export function TaskList() {
   const [status, setStatus] = useState<TaskStatus>();
   const [sort, setSort] = useState<TaskSort>();
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const tasksQuery = useTasks({ status, sort });
   const allTasksQuery = useTasks();
@@ -54,15 +57,25 @@ export function TaskList() {
       </header>
 
       <main className="mx-auto w-full max-w-[1120px] px-4 pb-10 pt-7 sm:px-6 sm:pt-9">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-[28px]">
-            Tasks
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            {allTasksQuery.isLoading
-              ? "Loading your tasks…"
-              : `${counts.ALL} ${counts.ALL === 1 ? "task" : "tasks"} · ${counts.IN_PROGRESS} in progress · ${counts.DONE} done`}
-          </p>
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-[28px]">
+              Tasks
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">
+              {allTasksQuery.isLoading
+                ? "Loading your tasks…"
+                : `${counts.ALL} ${counts.ALL === 1 ? "task" : "tasks"} · ${counts.IN_PROGRESS} in progress · ${counts.DONE} done`}
+            </p>
+          </div>
+          <Button
+            type="button"
+            onClick={() => setIsCreateDialogOpen(true)}
+            className="shrink-0"
+          >
+            <Plus aria-hidden="true" />
+            New task
+          </Button>
         </div>
 
         <TaskFilters
@@ -86,6 +99,7 @@ export function TaskList() {
             <TaskListEmpty
               status={status}
               onClearFilter={() => setStatus(undefined)}
+              onCreateTask={() => setIsCreateDialogOpen(true)}
             />
           ) : (
             <TaskTable tasks={tasksQuery.data} />
@@ -100,6 +114,10 @@ export function TaskList() {
           </p>
         )}
       </main>
+      <CreateTaskDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+      />
     </div>
   );
 }
