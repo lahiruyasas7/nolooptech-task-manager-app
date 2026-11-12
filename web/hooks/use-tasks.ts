@@ -8,6 +8,7 @@ import {
   type CreateTaskInput,
   type TaskSort,
   type TaskStatus,
+  type UpdateTaskInput,
 } from "@/schemas/task";
 
 export type TaskFilters = {
@@ -47,6 +48,28 @@ export function useCreateTask() {
   return useMutation({
     mutationFn: async (task: CreateTaskInput) => {
       const response = await api.post<unknown, CreateTaskInput>("/tasks", task);
+      return taskSchema.parse(response);
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: taskQueryKeys.all }),
+  });
+}
+
+export function useUpdateTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      task,
+    }: {
+      id: string;
+      task: UpdateTaskInput;
+    }) => {
+      const response = await api.patch<unknown, UpdateTaskInput>(
+        `/tasks/${id}`,
+        task,
+      );
       return taskSchema.parse(response);
     },
     onSuccess: () =>
