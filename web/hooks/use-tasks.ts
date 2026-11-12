@@ -76,3 +76,13 @@ export function useUpdateTask() {
       queryClient.invalidateQueries({ queryKey: taskQueryKeys.all }),
   });
 }
+
+export function useDeleteTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/tasks/${id}`),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: taskQueryKeys.all }),
+  });
+}
