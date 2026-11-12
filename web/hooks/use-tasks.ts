@@ -1,9 +1,11 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import {
+  taskSchema,
   taskListSchema,
+  type CreateTaskInput,
   type TaskSort,
   type TaskStatus,
 } from "@/schemas/task";
@@ -36,5 +38,18 @@ export function useTasks(filters: TaskFilters = {}) {
 
       return taskListSchema.parse(response);
     },
+  });
+}
+
+export function useCreateTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (task: CreateTaskInput) => {
+      const response = await api.post<unknown, CreateTaskInput>("/tasks", task);
+      return taskSchema.parse(response);
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: taskQueryKeys.all }),
   });
 }
