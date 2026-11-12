@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Check, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
+import { TaskFormDialog } from "@/components/tasks/task-form-dialog";
 import { TaskFilters } from "@/components/tasks/task-filters";
 import {
   TaskListEmpty,
@@ -12,12 +12,13 @@ import {
   TaskTableSkeleton,
 } from "@/components/tasks/task-table";
 import { useTasks } from "@/hooks/use-tasks";
-import type { TaskSort, TaskStatus } from "@/schemas/task";
+import type { Task, TaskSort, TaskStatus } from "@/schemas/task";
 
 export function TaskList() {
   const [status, setStatus] = useState<TaskStatus>();
   const [sort, setSort] = useState<TaskSort>();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task>();
 
   const tasksQuery = useTasks({ status, sort });
   const allTasksQuery = useTasks();
@@ -41,6 +42,16 @@ export function TaskList() {
     setSort((current) =>
       current === undefined ? "asc" : current === "asc" ? "desc" : undefined,
     );
+  }
+
+  function openCreateDialog() {
+    setSelectedTask(undefined);
+    setIsCreateDialogOpen(true);
+  }
+
+  function openEditDialog(task: Task) {
+    setSelectedTask(task);
+    setIsCreateDialogOpen(true);
   }
 
   return (
@@ -70,7 +81,7 @@ export function TaskList() {
           </div>
           <Button
             type="button"
-            onClick={() => setIsCreateDialogOpen(true)}
+            onClick={openCreateDialog}
             className="shrink-0"
           >
             <Plus aria-hidden="true" />
@@ -99,10 +110,10 @@ export function TaskList() {
             <TaskListEmpty
               status={status}
               onClearFilter={() => setStatus(undefined)}
-              onCreateTask={() => setIsCreateDialogOpen(true)}
+              onCreateTask={openCreateDialog}
             />
           ) : (
-            <TaskTable tasks={tasksQuery.data} />
+            <TaskTable tasks={tasksQuery.data} onEdit={openEditDialog} />
           )}
         </section>
 
@@ -114,9 +125,13 @@ export function TaskList() {
           </p>
         )}
       </main>
-      <CreateTaskDialog
+      <TaskFormDialog
         open={isCreateDialogOpen}
-        onOpenChange={setIsCreateDialogOpen}
+        onOpenChange={(open) => {
+          setIsCreateDialogOpen(open);
+          if (!open) setSelectedTask(undefined);
+        }}
+        task={selectedTask}
       />
     </div>
   );

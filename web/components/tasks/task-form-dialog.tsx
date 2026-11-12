@@ -23,10 +23,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreateTask } from "@/hooks/use-tasks";
+import { useCreateTask, useUpdateTask } from "@/hooks/use-tasks";
 import {
   taskFormSchema,
   toCreateTaskInput,
+  toUpdateTaskInput,
+  type Task,
   type TaskFormValues,
 } from "@/schemas/task";
 
@@ -53,10 +55,23 @@ function getStatusLabel(value: unknown): string {
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  task?: Task;
 };
 
-export function CreateTaskDialog({ open, onOpenChange }: Props) {
+function getTaskFormValues(task?: Task): TaskFormValues {
+  if (!task) return defaultValues;
+
+  return {
+    title: task.title,
+    description: task.description ?? "",
+    status: task.status,
+    dueDate: task.dueDate?.slice(0, 10) ?? "",
+  };
+}
+
+export function TaskFormDialog({ open, onOpenChange, task }: Props) {
   const createTask = useCreateTask();
+  const updateTask = useUpdateTask();
   const {
     control,
     formState: { errors, isSubmitting },
@@ -67,29 +82,42 @@ export function CreateTaskDialog({ open, onOpenChange }: Props) {
     resolver: zodResolver(taskFormSchema),
     defaultValues,
   });
-  const isPending = createTask.isPending || isSubmitting;
+  const isPending =
+    createTask.isPending || updateTask.isPending || isSubmitting;
 
   useEffect(() => {
-    if (open) reset(defaultValues);
-  }, [open, reset]);
+    if (open) reset(getTaskFormValues(task));
+  }, [open, reset, task]);
 
   function handleOpenChange(nextOpen: boolean) {
     if (isPending && !nextOpen) return;
     onOpenChange(nextOpen);
   }
 
-  async function handleCreate(values: TaskFormValues) {
+  async function handleSave(values: TaskFormValues) {
     try {
-      await createTask.mutateAsync(toCreateTaskInput(values));
-      toast.success("Task created successfully.");
+      if (task) {
+        await updateTask.mutateAsync({
+          id: task.id,
+          task: toUpdateTaskInput(values),
+        });
+        toast.success("Task updated successfully.");
+      } else {
+        await createTask.mutateAsync(toCreateTaskInput(values));
+        toast.success("Task created successfully.");
+      }
       reset(defaultValues);
       onOpenChange(false);
     } catch (error: unknown) {
       toast.error(
-        error instanceof Error ? error.message : "Unable to create task.",
+        error instanceof Error
+          ? error.message
+          : `Unable to ${task ? "update" : "create"} task.`,
       );
     }
   }
+
+  const action = task ? "Save changes" : "Create task";
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -99,15 +127,17 @@ export function CreateTaskDialog({ open, onOpenChange }: Props) {
       >
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            Create task
+            {task ? "Edit task" : "Create task"}
           </DialogTitle>
           <DialogDescription>
-            Add the details for your new task.
+            {task
+              ? "Update the details for this task."
+              : "Add the details for your new task."}
           </DialogDescription>
         </DialogHeader>
 
         <form
-          onSubmit={handleSubmit(handleCreate)}
+          onSubmit={handleSubmit(handleSave)}
           className="grid gap-4"
           noValidate
         >
@@ -225,7 +255,7 @@ export function CreateTaskDialog({ open, onOpenChange }: Props) {
               Cancel
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? "Creating…" : "Create task"}
+              {isPending ? (task ? "Saving…" : "Creating…") : action}
             </Button>
           </DialogFooter>
         </form>

@@ -1,4 +1,4 @@
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -86,7 +86,13 @@ export function TaskTableSkeleton() {
   );
 }
 
-export function TaskTable({ tasks }: { tasks: Task[] }) {
+export function TaskTable({
+  tasks,
+  onEdit,
+}: {
+  tasks: Task[];
+  onEdit: (task: Task) => void;
+}) {
   return (
     <>
       <div className="hidden overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm md:block">
@@ -101,6 +107,9 @@ export function TaskTable({ tasks }: { tasks: Task[] }) {
               </TableHead>
               <TableHead className="h-11 w-44 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Due date
+              </TableHead>
+              <TableHead className="h-11 w-24 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Actions
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -122,6 +131,18 @@ export function TaskTable({ tasks }: { tasks: Task[] }) {
                 </TableCell>
                 <TableCell>
                   <DueDate task={task} />
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onEdit(task)}
+                    aria-label={`Edit ${task.title}`}
+                  >
+                    <Pencil aria-hidden="true" />
+                    <span className="sr-only">Edit</span>
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -148,6 +169,18 @@ export function TaskTable({ tasks }: { tasks: Task[] }) {
               <span className="text-sm">
                 <DueDate task={task} />
               </span>
+            </div>
+            <div className="mt-3 flex justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => onEdit(task)}
+                aria-label={`Edit ${task.title}`}
+              >
+                <Pencil aria-hidden="true" />
+                Edit
+              </Button>
             </div>
           </article>
         ))}
