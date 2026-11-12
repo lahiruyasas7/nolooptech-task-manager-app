@@ -2,19 +2,37 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies and configure the backend URL:
+
+```bash
+npm install
+```
+
+In PowerShell, create `.env.local` from the example:
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
+The default API URL is `http://localhost:3001`. Update it if your backend runs
+at a different URL, then run the frontend:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## API client
+
+`lib/api.ts` provides typed `get`, `post`, `patch`, and `delete` helpers.
+Non-success responses are normalized to `ApiError`, including NestJS validation
+messages. The delete helper handles `204 No Content` without parsing a response
+body.
+
+Task response, request, and form schemas with inferred TypeScript types are in
+`schemas/task.ts`. Date-picker values are converted to UTC ISO timestamps before
+being sent to the API.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
