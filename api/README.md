@@ -75,6 +75,19 @@ HTTP 400 responses.
 
 ## Implemented endpoint
 
+`POST /tasks` creates a task. The title is required; description, status, and
+due date are optional. If status is omitted, it defaults to `TODO`.
+
+`GET /tasks/:id` retrieves a task by UUID. It returns HTTP 400 for a malformed
+UUID and HTTP 404 when no task exists.
+
+`PATCH /tasks/:id` updates only the provided fields. It returns HTTP 400 for a
+malformed UUID or invalid input, and HTTP 404 if the task does not exist.
+
+`DELETE /tasks/:id` deletes a task and returns HTTP 204 with no response body.
+It returns HTTP 400 for a malformed UUID and HTTP 404 if the task does not
+exist.
+
 `GET /tasks` returns tasks ordered by creation time, newest first. Optional
 query parameters:
 
