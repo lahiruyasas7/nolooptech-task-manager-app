@@ -38,6 +38,7 @@ describe('TasksController (e2e)', () => {
     createdAt: '2026-11-12T10:00:00.000Z',
     updatedAt: '2026-11-12T10:00:00.000Z',
   });
+  const taskFindUnique = vi.fn();
   const findMany = vi.fn().mockImplementation(async (args) => {
     if (args.where.dueDate?.not === null) {
       return args.orderBy[0].dueDate === 'asc'
@@ -59,12 +60,16 @@ describe('TasksController (e2e)', () => {
   beforeEach(async () => {
     findMany.mockClear();
     taskCreate.mockClear();
+    taskFindUnique.mockReset();
+    taskFindUnique.mockResolvedValue(taskWithDueDate);
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
       .overrideProvider(PrismaService)
-      .useValue({ task: { create: taskCreate, findMany } })
+      .useValue({
+        task: { create: taskCreate, findMany, findUnique: taskFindUnique },
+      })
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -111,6 +116,31 @@ describe('TasksController (e2e)', () => {
       .expect(400);
 
     expect(taskCreate).not.toHaveBeenCalled();
+  });
+
+  it('returns a task by its UUID', async () => {
+    const response = await request(app.getHttpServer())
+      .get(`/tasks/${taskWithDueDate.id}`)
+      .expect(200);
+
+    expect(response.body).toEqual(taskWithDueDate);
+    expect(taskFindUnique).toHaveBeenCalledWith({
+      where: { id: taskWithDueDate.id },
+    });
+  });
+
+  it('returns 404 when the task does not exist', async () => {
+    taskFindUnique.mockResolvedValueOnce(null);
+
+    await request(app.getHttpServer())
+      .get('/tasks/8ae09f6e-e554-4651-9552-39192e5a9451')
+      .expect(404);
+  });
+
+  it('returns 400 when the task ID is not a UUID', async () => {
+    await request(app.getHttpServer()).get('/tasks/not-a-uuid').expect(400);
+
+    expect(taskFindUnique).not.toHaveBeenCalled();
   });
 
   it('lists tasks in creation order by default', async () => {
