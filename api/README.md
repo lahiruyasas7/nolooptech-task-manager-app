@@ -28,21 +28,46 @@
 ## Project setup
 
 ```bash
-$ npm install
+npm install
 ```
+
+Create your local environment file from the example. In PowerShell, run:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+On macOS or Linux, run:
+
+```bash
+cp .env.example .env
+```
+
+Then generate Prisma Client and apply the checked-in migrations:
+
+```bash
+npm run db:generate
+npm run db:deploy
+```
+
+The default SQLite database is created at `prisma/dev.db` and is excluded from Git.
+Task status is stored as text because Prisma's SQLite connector does not support enums;
+validate status values at the API boundary.
+To create and apply a new migration during development, run
+`npx prisma migrate dev --name <migration-name>`.
 
 ## Compile and run the project
 
 ```bash
 # development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
+npm run start:dev
 
 # production mode
-$ npm run start:prod
+npm run start:prod
 ```
+
+The Swagger UI is available at `http://localhost:3000/api/docs` while the API is running.
+The OpenAPI JSON document is available at `http://localhost:3000/api/docs-json`.
 
 ## Run tests
 
