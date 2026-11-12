@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Check, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DeleteTaskDialog } from "@/components/tasks/delete-task-dialog";
 import { TaskFormDialog } from "@/components/tasks/task-form-dialog";
 import { TaskFilters } from "@/components/tasks/task-filters";
 import {
@@ -19,6 +20,7 @@ export function TaskList() {
   const [sort, setSort] = useState<TaskSort>();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task>();
+  const [taskToDelete, setTaskToDelete] = useState<Task>();
 
   const tasksQuery = useTasks({ status, sort });
   const allTasksQuery = useTasks();
@@ -52,6 +54,10 @@ export function TaskList() {
   function openEditDialog(task: Task) {
     setSelectedTask(task);
     setIsCreateDialogOpen(true);
+  }
+
+  function openDeleteDialog(task: Task) {
+    setTaskToDelete(task);
   }
 
   return (
@@ -113,7 +119,11 @@ export function TaskList() {
               onCreateTask={openCreateDialog}
             />
           ) : (
-            <TaskTable tasks={tasksQuery.data} onEdit={openEditDialog} />
+            <TaskTable
+              tasks={tasksQuery.data}
+              onEdit={openEditDialog}
+              onDelete={openDeleteDialog}
+            />
           )}
         </section>
 
@@ -132,6 +142,13 @@ export function TaskList() {
           if (!open) setSelectedTask(undefined);
         }}
         task={selectedTask}
+      />
+      <DeleteTaskDialog
+        task={taskToDelete}
+        open={taskToDelete !== undefined}
+        onOpenChange={(open) => {
+          if (!open) setTaskToDelete(undefined);
+        }}
       />
     </div>
   );

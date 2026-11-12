@@ -1,4 +1,4 @@
-import { AlertCircle, Pencil } from "lucide-react";
+import { AlertCircle, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -89,9 +89,11 @@ export function TaskTableSkeleton() {
 export function TaskTable({
   tasks,
   onEdit,
+  onDelete,
 }: {
   tasks: Task[];
   onEdit: (task: Task) => void;
+  onDelete: (task: Task) => void;
 }) {
   return (
     <>
@@ -108,7 +110,7 @@ export function TaskTable({
               <TableHead className="h-11 w-44 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Due date
               </TableHead>
-              <TableHead className="h-11 w-24 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <TableHead className="h-11 w-32 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Actions
               </TableHead>
             </TableRow>
@@ -143,6 +145,17 @@ export function TaskTable({
                     <Pencil aria-hidden="true" />
                     <span className="sr-only">Edit</span>
                   </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onDelete(task)}
+                    aria-label={`Delete ${task.title}`}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 aria-hidden="true" />
+                    <span className="sr-only">Delete</span>
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -170,7 +183,7 @@ export function TaskTable({
                 <DueDate task={task} />
               </span>
             </div>
-            <div className="mt-3 flex justify-end">
+            <div className="mt-3 flex justify-end gap-2">
               <Button
                 type="button"
                 variant="outline"
@@ -180,6 +193,17 @@ export function TaskTable({
               >
                 <Pencil aria-hidden="true" />
                 Edit
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => onDelete(task)}
+                aria-label={`Delete ${task.title}`}
+                className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+              >
+                <Trash2 aria-hidden="true" />
+                Delete
               </Button>
             </div>
           </article>
