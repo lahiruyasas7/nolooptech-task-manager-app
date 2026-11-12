@@ -15,6 +15,8 @@ export const taskSchema = z.object({
   updatedAt: isoDateTimeSchema,
 });
 
+export const taskListSchema = z.array(taskSchema);
+
 const taskInputFields = {
   title: z.string().trim().min(1).max(200),
   description: z.string().max(2000).nullable().optional(),
@@ -38,6 +40,7 @@ export const taskFormSchema = z.object({
 
 export type TaskStatus = z.infer<typeof taskStatusSchema>;
 export type Task = z.infer<typeof taskSchema>;
+export type TaskSort = "asc" | "desc";
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 export type TaskFormValues = z.infer<typeof taskFormSchema>;
