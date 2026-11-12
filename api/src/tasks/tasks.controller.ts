@@ -1,9 +1,19 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiCreatedResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
@@ -25,6 +35,16 @@ export class TasksController {
   @ApiBadRequestResponse({ description: 'Invalid task input.' })
   create(@Body() createTaskDto: CreateTaskDto) {
     return this.tasksService.create(createTaskDto);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a task by ID' })
+  @ApiParam({ name: 'id', description: 'Task UUID', format: 'uuid' })
+  @ApiOkResponse({ description: 'Task found.', type: TaskResponseDto })
+  @ApiBadRequestResponse({ description: 'Task ID is not a valid UUID.' })
+  @ApiNotFoundResponse({ description: 'Task was not found.' })
+  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
+    return this.tasksService.findOne(id);
   }
 
   @Get()

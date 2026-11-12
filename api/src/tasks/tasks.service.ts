@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateTaskDto } from './dto/create-task.dto.js';
@@ -17,6 +17,16 @@ export class TasksService {
         ...(dueDate ? { dueDate: new Date(dueDate) } : {}),
       },
     });
+  }
+
+  async findOne(id: string) {
+    const task = await this.prisma.task.findUnique({ where: { id } });
+
+    if (!task) {
+      throw new NotFoundException(`Task with ID "${id}" not found.`);
+    }
+
+    return task;
   }
 
   async findAll({ status, sort }: ListTasksQueryDto) {
