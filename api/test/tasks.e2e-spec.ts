@@ -41,6 +41,7 @@ describe('TasksController (e2e)', () => {
   });
   const taskFindUnique = vi.fn();
   const taskUpdate = vi.fn();
+  const taskDelete = vi.fn();
   const findMany = vi.fn().mockImplementation(async (args) => {
     if (args.where.dueDate?.not === null) {
       return args.orderBy[0].dueDate === 'asc'
@@ -66,6 +67,8 @@ describe('TasksController (e2e)', () => {
     taskFindUnique.mockResolvedValue(taskWithDueDate);
     taskUpdate.mockReset();
     taskUpdate.mockResolvedValue(taskWithDueDate);
+    taskDelete.mockReset();
+    taskDelete.mockResolvedValue(taskWithDueDate);
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -77,6 +80,7 @@ describe('TasksController (e2e)', () => {
           findMany,
           findUnique: taskFindUnique,
           update: taskUpdate,
+          delete: taskDelete,
         },
       })
       .compile();
@@ -197,6 +201,36 @@ describe('TasksController (e2e)', () => {
       .expect(400);
 
     expect(taskUpdate).not.toHaveBeenCalled();
+  });
+
+  it('deletes a task and returns no content', async () => {
+    await request(app.getHttpServer())
+      .delete(`/tasks/${taskWithDueDate.id}`)
+      .expect(204)
+      .expect('');
+
+    expect(taskDelete).toHaveBeenCalledWith({
+      where: { id: taskWithDueDate.id },
+    });
+  });
+
+  it('returns 404 when the task to delete does not exist', async () => {
+    taskDelete.mockRejectedValueOnce(
+      new Prisma.PrismaClientKnownRequestError('Record not found.', {
+        code: 'P2025',
+        clientVersion: '7.10.1',
+      }),
+    );
+
+    await request(app.getHttpServer())
+      .delete('/tasks/8ae09f6e-e554-4651-9552-39192e5a9451')
+      .expect(404);
+  });
+
+  it('returns 400 when the task ID to delete is not a UUID', async () => {
+    await request(app.getHttpServer()).delete('/tasks/not-a-uuid').expect(400);
+
+    expect(taskDelete).not.toHaveBeenCalled();
   });
 
   it('lists tasks in creation order by default', async () => {
