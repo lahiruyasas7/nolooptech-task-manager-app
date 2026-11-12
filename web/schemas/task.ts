@@ -73,6 +73,7 @@ export function toUpdateTaskInput(values: TaskFormValues): UpdateTaskInput {
 
   return updateTaskSchema.parse({
     ...taskFields,
+    description: taskFields.description || null,
     dueDate: dueDate ? toUtcIsoDate(dueDate) : null,
   });
 }
