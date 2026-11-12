@@ -34,6 +34,14 @@ Task response, request, and form schemas with inferred TypeScript types are in
 `schemas/task.ts`. Date-picker values are converted to UTC ISO timestamps before
 being sent to the API.
 
+Tasks can be created or edited from the task list using the task dialog. The form
+validates inputs with Zod, submits through the typed API client, refreshes task
+queries on success, and shows success or API error notifications.
+
+Tasks can be deleted using the **Delete** action on a task. The app asks for
+confirmation before sending the delete request and refreshes the task list when
+deletion succeeds.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 TanStack Query is configured in `app/providers.tsx` and available throughout the

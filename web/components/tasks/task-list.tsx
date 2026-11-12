@@ -1,0 +1,155 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { Check, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DeleteTaskDialog } from "@/components/tasks/delete-task-dialog";
+import { TaskFormDialog } from "@/components/tasks/task-form-dialog";
+import { TaskFilters } from "@/components/tasks/task-filters";
+import {
+  TaskListEmpty,
+  TaskListError,
+  TaskTable,
+  TaskTableSkeleton,
+} from "@/components/tasks/task-table";
+import { useTasks } from "@/hooks/use-tasks";
+import type { Task, TaskSort, TaskStatus } from "@/schemas/task";
+
+export function TaskList() {
+  const [status, setStatus] = useState<TaskStatus>();
+  const [sort, setSort] = useState<TaskSort>();
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task>();
+  const [taskToDelete, setTaskToDelete] = useState<Task>();
+
+  const tasksQuery = useTasks({ status, sort });
+  const allTasksQuery = useTasks();
+
+  const counts = useMemo(() => {
+    const tasks = allTasksQuery.data ?? [];
+    return {
+      ALL: tasks.length,
+      TODO: tasks.filter((task) => task.status === "TODO").length,
+      IN_PROGRESS: tasks.filter((task) => task.status === "IN_PROGRESS").length,
+      DONE: tasks.filter((task) => task.status === "DONE").length,
+    };
+  }, [allTasksQuery.data]);
+
+  const retryMessage =
+    tasksQuery.error instanceof Error
+      ? tasksQuery.error.message
+      : "Please check your connection and try again.";
+
+  function toggleSort() {
+    setSort((current) =>
+      current === undefined ? "asc" : current === "asc" ? "desc" : undefined,
+    );
+  }
+
+  function openCreateDialog() {
+    setSelectedTask(undefined);
+    setIsCreateDialogOpen(true);
+  }
+
+  function openEditDialog(task: Task) {
+    setSelectedTask(task);
+    setIsCreateDialogOpen(true);
+  }
+
+  function openDeleteDialog(task: Task) {
+    setTaskToDelete(task);
+  }
+
+  return (
+    <div className="min-h-screen bg-[#f5f6fb]">
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex h-14 max-w-[1120px] items-center gap-2.5 px-4 sm:px-6">
+          <span className="flex size-7 items-center justify-center rounded-lg bg-violet-600 text-white">
+            <Check aria-hidden="true" className="size-4 stroke-[3]" />
+          </span>
+          <span className="text-sm font-bold tracking-tight text-slate-900">
+            Task Manager
+          </span>
+        </div>
+      </header>
+
+      <main className="mx-auto w-full max-w-[1120px] px-4 pb-10 pt-7 sm:px-6 sm:pt-9">
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-[28px]">
+              Tasks
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">
+              {allTasksQuery.isLoading
+                ? "Loading your tasks…"
+                : `${counts.ALL} ${counts.ALL === 1 ? "task" : "tasks"} · ${counts.IN_PROGRESS} in progress · ${counts.DONE} done`}
+            </p>
+          </div>
+          <Button
+            type="button"
+            onClick={openCreateDialog}
+            className="shrink-0"
+          >
+            <Plus aria-hidden="true" />
+            New task
+          </Button>
+        </div>
+
+        <TaskFilters
+          status={status}
+          counts={counts}
+          sort={sort}
+          onStatusChange={setStatus}
+          onSortToggle={toggleSort}
+        />
+
+        <section className="mt-5" aria-label="Tasks">
+          {tasksQuery.isPending ? (
+            <TaskTableSkeleton />
+          ) : tasksQuery.isError ? (
+            <TaskListError
+              message={retryMessage}
+              onRetry={() => void tasksQuery.refetch()}
+              isRetrying={tasksQuery.isFetching}
+            />
+          ) : tasksQuery.data.length === 0 ? (
+            <TaskListEmpty
+              status={status}
+              onClearFilter={() => setStatus(undefined)}
+              onCreateTask={openCreateDialog}
+            />
+          ) : (
+            <TaskTable
+              tasks={tasksQuery.data}
+              onEdit={openEditDialog}
+              onDelete={openDeleteDialog}
+            />
+          )}
+        </section>
+
+        {!tasksQuery.isPending && !tasksQuery.isError && (
+          <p className="mt-4 text-xs text-slate-500" aria-live="polite">
+            Showing {tasksQuery.data?.length ?? 0}
+            {status ? ` ${status.toLowerCase().replace("_", " ")} ` : " "}
+            {tasksQuery.data?.length === 1 ? "task" : "tasks"}
+          </p>
+        )}
+      </main>
+      <TaskFormDialog
+        open={isCreateDialogOpen}
+        onOpenChange={(open) => {
+          setIsCreateDialogOpen(open);
+          if (!open) setSelectedTask(undefined);
+        }}
+        task={selectedTask}
+      />
+      <DeleteTaskDialog
+        task={taskToDelete}
+        open={taskToDelete !== undefined}
+        onOpenChange={(open) => {
+          if (!open) setTaskToDelete(undefined);
+        }}
+      />
+    </div>
+  );
+}
