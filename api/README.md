@@ -44,6 +44,9 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+The Swagger UI is available at `http://localhost:3000/api/docs` while the API is running.
+The OpenAPI JSON document is available at `http://localhost:3000/api/docs-json`.
+
 ## Run tests
 
 ```bash
