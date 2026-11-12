@@ -55,6 +55,21 @@ export class TasksService {
     }
   }
 
+  async remove(id: string): Promise<void> {
+    try {
+      await this.prisma.task.delete({ where: { id } });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException(`Task with ID "${id}" not found.`);
+      }
+
+      throw error;
+    }
+  }
+
   async findAll({ status, sort }: ListTasksQueryDto) {
     const where: Prisma.TaskWhereInput = status ? { status } : {};
 

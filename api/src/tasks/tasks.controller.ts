@@ -1,7 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Patch,
   Param,
   ParseUUIDPipe,
@@ -11,6 +14,7 @@ import {
 import {
   ApiBadRequestResponse,
   ApiCreatedResponse,
+  ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -52,6 +56,17 @@ export class TasksController {
     @Body() updateTaskDto: UpdateTaskDto,
   ) {
     return this.tasksService.update(id, updateTaskDto);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete a task' })
+  @ApiParam({ name: 'id', description: 'Task UUID', format: 'uuid' })
+  @ApiNoContentResponse({ description: 'Task deleted.' })
+  @ApiBadRequestResponse({ description: 'Task ID is not a valid UUID.' })
+  @ApiNotFoundResponse({ description: 'Task was not found.' })
+  remove(@Param('id', new ParseUUIDPipe()) id: string) {
+    return this.tasksService.remove(id);
   }
 
   @Get(':id')
