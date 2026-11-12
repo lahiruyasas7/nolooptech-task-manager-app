@@ -18,8 +18,17 @@ export const taskSchema = z.object({
 export const taskListSchema = z.array(taskSchema);
 
 const taskInputFields = {
-  title: z.string().trim().min(1).max(200),
-  description: z.string().max(2000).nullable().optional(),
+  title: z
+    .string()
+    .trim()
+    .min(1, "Title is required.")
+    .max(200, "Title must be 200 characters or fewer."),
+  description: z
+    .string()
+    .trim()
+    .max(2000, "Description must be 2,000 characters or fewer.")
+    .nullable()
+    .optional(),
   status: taskStatusSchema.optional(),
 };
 
@@ -54,6 +63,7 @@ export function toCreateTaskInput(values: TaskFormValues): CreateTaskInput {
 
   return createTaskSchema.parse({
     ...taskFields,
+    description: taskFields.description || undefined,
     ...(dueDate ? { dueDate: toUtcIsoDate(dueDate) } : {}),
   });
 }
