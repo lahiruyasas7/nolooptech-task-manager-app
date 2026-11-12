@@ -47,13 +47,13 @@ export function TaskFilters({
       >
         <TabsList
           aria-label="Filter tasks by status"
-          className="h-auto w-full flex-wrap justify-start gap-1 rounded-xl border border-slate-200 bg-white p-1 sm:w-fit"
+          className="group-data-horizontal/tabs:h-auto grid w-full grid-cols-2 justify-start gap-1 rounded-xl border border-slate-200 bg-white p-1 sm:flex sm:w-fit"
         >
           {statusFilters.map((filter) => (
             <TabsTrigger
               key={filter.value}
               value={filter.value}
-              className="group h-9 flex-none gap-2 rounded-lg px-3 text-xs data-active:bg-violet-600 data-active:text-white sm:text-sm"
+              className="group h-9 w-full min-w-0 flex-none gap-2 rounded-lg px-3 text-xs data-active:bg-violet-600 data-active:text-white sm:w-auto sm:text-sm"
             >
               {filter.label}
               <span
