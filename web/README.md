@@ -34,7 +34,7 @@ Task response, request, and form schemas with inferred TypeScript types are in
 `schemas/task.ts`. Date-picker values are converted to UTC ISO timestamps before
 being sent to the API.
 
-Tasks can be created from the task list using the **New task** dialog. The form
+Tasks can be created or edited from the task list using the task dialog. The form
 validates inputs with Zod, submits through the typed API client, refreshes task
 queries on success, and shows success or API error notifications.
 
