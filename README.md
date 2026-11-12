@@ -2,6 +2,24 @@
 
 A task manager with a NestJS API, SQLite database, and Next.js web app.
 
+## Tech stack
+
+### Backend
+
+- NestJS and TypeScript
+- Prisma ORM with SQLite
+- `class-validator` and `class-transformer` for request validation
+- Swagger / OpenAPI documentation
+
+### Frontend
+
+- Next.js App Router, React, and TypeScript
+- Tailwind CSS and shadcn/ui
+- TanStack Query for server state
+- Axios for API requests
+- React Hook Form and Zod for forms and validation
+- Sonner for toast notifications
+
 ## Run with Docker Compose
 
 ### Prerequisites
