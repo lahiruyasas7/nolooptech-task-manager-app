@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Patch,
   Param,
   ParseUUIDPipe,
   Post,
@@ -23,6 +24,7 @@ import { TaskResponseDto } from './dto/task-response.dto.js';
 import { TaskSort } from './task-sort.enum.js';
 import { TaskStatus } from './task-status.enum.js';
 import { TasksService } from './tasks.service.js';
+import { UpdateTaskDto } from './dto/update-task.dto.js';
 
 @ApiTags('Tasks')
 @Controller('tasks')
@@ -35,6 +37,21 @@ export class TasksController {
   @ApiBadRequestResponse({ description: 'Invalid task input.' })
   create(@Body() createTaskDto: CreateTaskDto) {
     return this.tasksService.create(createTaskDto);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update a task' })
+  @ApiParam({ name: 'id', description: 'Task UUID', format: 'uuid' })
+  @ApiOkResponse({ description: 'Task updated.', type: TaskResponseDto })
+  @ApiBadRequestResponse({
+    description: 'Invalid task ID or task input.',
+  })
+  @ApiNotFoundResponse({ description: 'Task was not found.' })
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() updateTaskDto: UpdateTaskDto,
+  ) {
+    return this.tasksService.update(id, updateTaskDto);
   }
 
   @Get(':id')
