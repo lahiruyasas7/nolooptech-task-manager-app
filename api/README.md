@@ -56,6 +56,10 @@ validate status values at the API boundary.
 To create and apply a new migration during development, run
 `npx prisma migrate dev --name <migration-name>`.
 
+Set `CORS_ORIGIN` to the exact origin of the web app (for example,
+`http://localhost:3000`). If it is unset, the API allows the local Next.js
+development origin only.
+
 ## Compile and run the project
 
 ```bash
@@ -68,6 +72,35 @@ npm run start:prod
 
 The Swagger UI is available at `http://localhost:3000/api/docs` while the API is running.
 The OpenAPI JSON document is available at `http://localhost:3000/api/docs-json`.
+
+Request bodies and query parameters are validated with DTOs and a global
+`ValidationPipe`. Undeclared fields and invalid task values are rejected with
+HTTP 400 responses.
+
+## Implemented endpoint
+
+`POST /tasks` creates a task. The title is required; description, status, and
+due date are optional. If status is omitted, it defaults to `TODO`.
+
+`GET /tasks/:id` retrieves a task by UUID. It returns HTTP 400 for a malformed
+UUID and HTTP 404 when no task exists.
+
+`PATCH /tasks/:id` updates only the provided fields. It returns HTTP 400 for a
+malformed UUID or invalid input, and HTTP 404 if the task does not exist.
+
+`DELETE /tasks/:id` deletes a task and returns HTTP 204 with no response body.
+It returns HTTP 400 for a malformed UUID and HTTP 404 if the task does not
+exist.
+
+`GET /tasks` returns tasks ordered by creation time, newest first. Optional
+query parameters:
+
+- `status`: `TODO`, `IN_PROGRESS`, or `DONE`.
+- `sort`: `asc` or `desc` to sort by due date; tasks without a due date remain
+  last.
+
+For example, `GET /tasks?status=TODO&sort=asc`. Open Swagger UI to try the
+endpoint interactively.
 
 ## Run tests
 
