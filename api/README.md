@@ -73,6 +73,18 @@ Request bodies and query parameters are validated with DTOs and a global
 `ValidationPipe`. Undeclared fields and invalid task values are rejected with
 HTTP 400 responses.
 
+## Implemented endpoint
+
+`GET /tasks` returns tasks ordered by creation time, newest first. Optional
+query parameters:
+
+- `status`: `TODO`, `IN_PROGRESS`, or `DONE`.
+- `sort`: `asc` or `desc` to sort by due date; tasks without a due date remain
+  last.
+
+For example, `GET /tasks?status=TODO&sort=asc`. Open Swagger UI to try the
+endpoint interactively.
+
 ## Run tests
 
 ```bash
